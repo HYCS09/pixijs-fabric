@@ -1,4 +1,5 @@
 import { Observable } from './Observable';
+import { Point } from './Point';
 
 export class CommonMethods<EventSpec> extends Observable<EventSpec> {
   /**
@@ -36,7 +37,15 @@ export class CommonMethods<EventSpec> extends Observable<EventSpec> {
   }
 
   protected _set(key: string, value: any) {
-    this[key as keyof this] = value;
+    const myKey = key as keyof this;
+    if (value instanceof Point) {
+      if (!this[myKey]) {
+        this[myKey] = new Point() as any;
+      }
+      (this[myKey] as Point).copyFrom(value);
+    } else {
+      this[myKey] = value;
+    }
   }
 
   /**

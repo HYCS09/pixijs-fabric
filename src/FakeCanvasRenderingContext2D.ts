@@ -1,5 +1,5 @@
 import { Graphics, Matrix, Rectangle, Texture, TextureSource } from 'pixi.js';
-import { ObjectGeometry } from './ObjectGeometry';
+import { ObjectGeometry } from './Object/ObjectGeometry';
 import { textFactory } from './textFactory';
 
 const canvas = document.createElement('canvas');
@@ -209,7 +209,9 @@ export class FakeCanvasRenderingContext2D implements CanvasRenderingContext2D {
     endAngle: number,
     counterclockwise?: boolean,
   ): void {
-    console.warn(`ellipse暂不支持rotation、startAngle、endAngle、counterclockwise参数`);
+    console.warn(
+      `ellipse暂不支持rotation、startAngle、endAngle、counterclockwise参数`,
+    );
     this.curGraphics.ellipse(x, y, radiusX, radiusY);
     this.curGraphics.pathDirty = true;
   }

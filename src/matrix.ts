@@ -1,5 +1,5 @@
-import { Matrix } from "pixi.js";
-import type { TDegree, TMat2D, TRadian } from "./typedefs";
+import { Matrix } from 'pixi.js';
+import type { TDegree, TMat2D, TRadian } from './typedefs';
 
 declare module 'pixi.js' {
   interface Matrix {
@@ -47,6 +47,10 @@ export const PiBy180 = Math.PI / 180;
 
 const degreesToRadians = (degrees: TDegree): TRadian =>
   (degrees * PiBy180) as TRadian;
+
+export const radiansToDegrees = (radians: TRadian): TDegree =>
+  (radians / PiBy180) as TDegree;
+
 export const calcDimensionsMatrix = ({
   scaleX = 1,
   scaleY = 1,
@@ -124,4 +128,37 @@ export const isIdentityMatrix = (matrix: TMat2D) => {
     matrix[4] === 0 &&
     matrix[5] === 0
   );
+};
+
+export const calcPlaneRotation = ([a, b]: TMat2D) =>
+  Math.atan2(b, a) as TRadian;
+
+const tempRes = {
+  angle: 0 as TDegree,
+  scaleX: 1,
+  scaleY: 1,
+  skewX: 0 as TDegree,
+  skewY: 0 as TDegree,
+  translateX: 0,
+  translateY: 0,
+};
+export type TQrDecomposeOut = Required<
+  Omit<TComposeMatrixArgs, 'flipX' | 'flipY'>
+>;
+export const qrDecompose = (a: TMat2D): TQrDecomposeOut => {
+  const angle = calcPlaneRotation(a),
+    denom = Math.pow(a[0], 2) + Math.pow(a[1], 2),
+    scaleX = Math.sqrt(denom),
+    scaleY = (a[0] * a[3] - a[2] * a[1]) / scaleX,
+    skewX = Math.atan2(a[0] * a[2] + a[1] * a[3], denom);
+
+  tempRes.angle = radiansToDegrees(angle);
+  tempRes.scaleX = scaleX;
+  tempRes.scaleY = scaleY;
+  tempRes.skewX = radiansToDegrees(skewX);
+  tempRes.skewY = 0 as TDegree;
+  tempRes.translateX = a[4] || 0;
+  tempRes.translateY = a[5] || 0;
+
+  return tempRes;
 };

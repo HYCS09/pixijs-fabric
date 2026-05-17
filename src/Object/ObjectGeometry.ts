@@ -1,5 +1,5 @@
 import { Container, Graphics, Matrix } from 'pixi.js';
-import { Point } from './Point';
+import { Point } from '../Point';
 import {
   TCornerPoint,
   TDegree,
@@ -7,12 +7,11 @@ import {
   TOriginX,
   TOriginY,
   TRadian,
-} from './typedefs';
-import { CommonMethods } from './CommonMethods';
-import { sizeAfterTransform } from './objectTransforms';
-import { calcDimensionsMatrix, composeMatrix } from './matrix';
-import { CENTER } from './constants';
-import { FakeCanvasRenderingContext2D } from './FakeCanvasRenderingContext2D';
+} from '../typedefs';
+import { CommonMethods } from '../CommonMethods';
+import { sizeAfterTransform } from '../objectTransforms';
+import { calcDimensionsMatrix, composeMatrix } from '../matrix';
+import { CENTER } from '../constants';
 
 const originOffset = {
   left: -0.5,
@@ -21,6 +20,9 @@ const originOffset = {
   bottom: 0.5,
   right: 0.5,
 };
+
+const temp7 = new Point();
+const temp8 = new Point();
 
 const resolveOrigin = (
   originValue: TOriginX | TOriginY | number | undefined,
@@ -141,25 +143,6 @@ export class ObjectGeometry<
   declare strokeUniform: boolean;
   constructor() {
     super();
-    // 默认值
-    this.set({
-      left: 0,
-      top: 0,
-      width: 0,
-      height: 0,
-      flipX: false,
-      flipY: false,
-      scaleX: 1,
-      scaleY: 1,
-      skewX: 0,
-      skewY: 0,
-      originX: CENTER,
-      originY: CENTER,
-      angle: 0,
-      strokeWidth: 1,
-      fill: '#000000',
-      stroke: '#000000',
-    });
     this.resetDrawIdx();
   }
   protected clearPixiContent(): void {
@@ -173,22 +156,6 @@ export class ObjectGeometry<
 
     this.resetDrawIdx();
   }
-  drawObject(ctx: CanvasRenderingContext2D) {
-    const originalFill = this.fill;
-    const originalStroke = this.stroke;
-    (ctx as FakeCanvasRenderingContext2D).bindObjectGeometry(this);
-    this._render(ctx);
-    this.fill = originalFill;
-    this.stroke = originalStroke;
-  }
-  transform(ctx: CanvasRenderingContext2D) {
-    this.calcOwnMatrix();
-  }
-  render(ctx: CanvasRenderingContext2D) {
-    this.transform(ctx);
-    this.drawObject(ctx);
-  }
-  _render(ctx: CanvasRenderingContext2D) {}
   public getCurGraphics(): Graphics {
     const children = this.pixiContent.children;
     if (!children[this.drawIdx]) {
@@ -396,5 +363,44 @@ export class ObjectGeometry<
     }
 
     return cache.value;
+  }
+  protected _getNonTransformedDimensions(): Point {
+    temp8.setXY(this.width, this.height);
+    return temp8.scalarAdd(this.strokeWidth);
+  }
+  public translateToOriginPoint(
+    center: Point,
+    originX: TOriginX,
+    originY: TOriginY,
+  ): Point {
+    const p = this.translateToGivenOrigin(
+      center,
+      CENTER,
+      CENTER,
+      originX,
+      originY,
+    );
+    if (this.angle) {
+      return p.rotate(degreesToRadians(this.angle), center);
+    }
+    return p;
+  }
+  public getPositionByOrigin(originX: TOriginX, originY: TOriginY): Point {
+    const p = this.translateToOriginPoint(
+      this.getRelativeCenterPoint(),
+      originX,
+      originY,
+    );
+    temp7.copyFrom(p);
+    return temp7;
+  }
+  setPositionByOrigin(pos: Point, originX: TOriginX, originY: TOriginY) {
+    const center = this.translateToCenterPoint(pos, originX, originY),
+      position = this.translateToOriginPoint(
+        center,
+        this.originX,
+        this.originY,
+      );
+    this.set({ left: position.x, top: position.y });
   }
 }

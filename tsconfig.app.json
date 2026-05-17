@@ -20,9 +20,9 @@
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedParameters": false,
     "erasableSyntaxOnly": false,
-    "noFallthroughCasesInSwitch": true,
+    "noFallthroughCasesInSwitch": false,
     "noUncheckedSideEffectImports": true,
     "strictPropertyInitialization": false
   },
